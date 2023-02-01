@@ -136,7 +136,7 @@ class ComputerSystem0API(Resource):
 				wildcards = {'ComputerSystemId':ComputerSystemId, 'rb':g.rest_base}
 				config=get_ComputerSystem0_instance(wildcards)
 				config = create_and_patch_object (config, members, member_ids, path, collection_path)
-				resp = config, 200
+				resp = config, 400
 
 			except Exception:
 				traceback.print_exc()
