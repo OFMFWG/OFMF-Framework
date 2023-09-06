@@ -28,11 +28,10 @@
 #  THE POSSIBILITY OF SUCH DAMAGE.
 
 BASE_DIR=$(pwd)
-WORK_DIR=../OFMF
 
 API_PORT=5001
 SETUP_ONLY=
-RESET_RESOURCES=
+VIRTUAL_ENV=
 
 COMMON_NAME="$1"
 EXTFILE=certificate_config.cnf
@@ -45,19 +44,15 @@ necessary source files ready and start a local instance of the emulator.
 
 USAGE:
 
-    $(basename $0) [--port PORT] [--workspace DIR] [--no-start]
+    $(basename $0) [--port PORT] [--no-start] [--virtual-env]
 
 Options:
 
     -p | --port PORT     -- Port to run the emulator on. Default is $API_PORT.
 
-    -w | --workspace DIR -- Directory to set up the emulator. Defaults to
-                            '$WORK_DIR'.
-
     -n | --no-start      -- Prepare the emulator but do not start it.
 
-    -u | --update        -- Update working dir with modified files
-    -r | --reset         -- Reset the Resources folder (RedFish tree)
+    -v | --virtual-env   -- Create a virtual environment with all needed in './venv'
 
 EOF
 }
@@ -69,18 +64,11 @@ while [ "$1" != "" ]; do
             shift
             API_PORT=$1
             ;;
-        -w | --workspace )
-            shift
-            WORK_DIR=$1
-            ;;
         -n | --no-start)
             SETUP_ONLY="true"
             ;;
-        -u | --update)
-            UPDATE_ONLY="true"
-            ;;
-        -r | --reset)
-            RESET_RESOURCES="true"
+        -v | --virtual-env)
+            VIRTUAL_ENV="true"
             ;;
         *)
             print_help
@@ -90,7 +78,7 @@ while [ "$1" != "" ]; do
 done
 
 # Do some system sanity checks first
-if ! [ -x "$(command -v python3)" ]; then
+if ! [ -x "$(command -v python3)" ] ; then
     echo "Error: python3 is required to run the emulator and executable not" \
          "found"
     echo ""
@@ -117,87 +105,39 @@ if ! [ -x "$(command -v git)" ]; then
     exit 1
 fi
 
-if [ "$RESET_RESOURCES" == "true" ]; then
-    echo ""
-    echo "Wiping resources folder with original files"
-    echo ""
-
-    rm -r $WORK_DIR/Resources
-    cp -r Resources $WORK_DIR/
-fi
-
-if [ "$UPDATE_ONLY" == "true" ]; then
-    echo ""
-    echo "Updating installed emulator with modified files"
-    echo ""
-
-    for f in `git ls-files -m`; do
-        echo "Updating: $f"
-        cp -f $f $WORK_DIR/$f
-    done
-
-    exit 0
-fi
-
-echo "Creating workspace: '$WORK_DIR'..."
-rm -fr $WORK_DIR
-mkdir $WORK_DIR
-
-# Get the Redfish base
-echo "Getting Redfish emulator base files..."
-git clone --depth 1 https://github.com/DMTF/Redfish-Interface-Emulator \
-    $WORK_DIR
-
 # Set up our virtual environment
-echo "Setting up emulator Python virtualenv and requirements..."
-# cd $WORK_DIR
-virtualenv --python=python3 "$WORK_DIR"/venv
-"$WORK_DIR"/venv/bin/pip install -q -r "$BASE_DIR"/requirements.txt
-
-# Remove Redfish static / starting mockups
-rm -r "$WORK_DIR"/api_emulator/redfish/static
-
-# Remove Redfish templates, and .py files.
-rm -rf "$WORK_DIR"/api_emulator/redfish/templates
-rm -rf "$WORK_DIR"/api_emulator/redfish/*.py
-
-# Copy over the Swordfish bits
-echo "Applying Swordfish additions..."
-cp -r -f "$BASE_DIR"/api_emulator "$WORK_DIR"/
-cp -r -f "$BASE_DIR"/Resources "$WORK_DIR"/
-cp -r -f "$BASE_DIR"/emulator-config.json "$WORK_DIR"/
-cp -r -f "$BASE_DIR"/g.py "$WORK_DIR"/
-cp -r -f "$BASE_DIR"/emulator.py "$WORK_DIR"/
-cp -r -f "$BASE_DIR"/ofmf-main.py "$WORK_DIR"/
-cp -r -f "$BASE_DIR"/certificate_config.cnf "$WORK_DIR"/
-cp -r -f "$BASE_DIR"/v3.ext "$WORK_DIR"/
-cp -r -f "$BASE_DIR"/tests "$WORK_DIR"/
+if [ "$VIRTUAL_ENV" == "true" ]; then
+    echo "Setting up emulator Python virtualenv and requirements..."
+    virtualenv --python=python3 venv
+    venv/bin/pip install -q -r requirements.txt
+fi
 
 # generating server key
 echo "Generating private key"
-openssl genrsa -out "$WORK_DIR"/server.key 2048
+openssl genrsa -out "$BASE_DIR"/server.key 2048
 
 # generating public key
 echo "Generating public key"
-openssl rsa -in "$WORK_DIR"/server.key -pubout -out "$WORK_DIR"/server_public.key
+openssl rsa -in "$BASE_DIR"/server.key -pubout -out "$BASE_DIR"/server_public.key
 
 # ## Update Common Name in External File
 # /bin/echo "commonName              = $COMMON_NAME" >> $EXTFILE
 
 # Generating Certificate Signing Request using config file
 echo "Generating Certificate Signing Request"
-openssl req -new -key "$WORK_DIR"/server.key -out "$WORK_DIR"/server.csr -config "$WORK_DIR"/$EXTFILE
+openssl req -new -key "$BASE_DIR"/server.key -out "$BASE_DIR"/server.csr -config "$BASE_DIR"/$EXTFILE
 
 echo "Generating self signed certificate"
-openssl x509 -in "$WORK_DIR"/server.csr -out "$WORK_DIR"/server.crt -req -signkey "$WORK_DIR"/server.key -days 365 -extfile "$WORK_DIR"/v3.ext
+openssl x509 -in "$BASE_DIR"/server.csr -out "$BASE_DIR"/server.crt -req -signkey "$BASE_DIR"/server.key -days 365 -extfile "$BASE_DIR"/v3.ext
 
 if [ "$SETUP_ONLY" == "true" ]; then
     echo ""
     echo "Emulator files have been prepared. Run the following to start the" \
          "emulator:"
     echo ""
-    echo "   cd $WORK_DIR"
-    echo "   ./venv/bin/python ofmf-main.py"
+    echo "   python3 ofmf-main.py"
+    echo " or if you have set up a virtual environment: (see -v option)"
+    echo "   venv/bin/python ofmf-main.py"
     echo ""
     exit 0
 fi
@@ -214,12 +154,23 @@ $(tput bold)Press Ctrl-C when done.$(tput sgr0)
 ---------------------------------------------------------------------
 EOF
 
-cd "$WORK_DIR"
-#"$WORK_DIR"/venv/bin/python emulator.py -port $API_PORT
-"$WORK_DIR"/venv/bin/python ofmf-main.py -port $API_PORT
-
 echo ""
-echo "Emulator can be rerun from '$WORK_DIR' by running the command:"
-echo ""
-echo "venv/bin/python emulator.py"
+if [ -d "venv" ]; then
+    venv/bin/python ofmf-main.py -port $API_PORT
+    echo ""
+    echo ""
+    echo "Emulator can be rerun from here by running the command:"
+    echo "   venv/bin/python ofmf-main.py"
+else
+    #python3 ofmf-main.py -port $API_PORT
+    res=$(python3 ofmf-main.py -port $API_PORT)
+    echo $res
+    echo ""
+    echo ""
+    echo "Emulator can be rerun from here by running the command:"
+    echo "   python3 ofmf-main.py"
+    echo ""
+    echo "If running './setup.sh' complains about a missing module,"
+    echo "  try considering './setup.sh -v' to create a virtual environment"
+fi
 echo ""

@@ -2,23 +2,28 @@
 
 The OFMF Reference implementation provides a basic implementation of the OpenFabrics Management Framework. This project is based (fork) on the [Swordfish API Emulator](https://github.com/SNIA/Swordfish-API-Emulator), that provides the support for interacting with a RedFish/SwordFish system via RESTful operations (create, read, update, and delete). Before contributing to this project, read our [license](https://github.com/OFMFWG/OFMF-Reference/blob/master/LICENSE.md) and make sure you agree with the terms.
 
-The OFMF Reference implementation is maintained by the OpenFabrics Alliance, while the Swordfish API Emulator code is maintained on GitHub by the SNIA, and the Redfish Interface Emulator code is maintained on GitHub by the DMTF.
+The OFMF Reference implementation is maintained by the OpenFabrics Alliance, while the Swordfish API Emulator code is maintained on GitHub by the SNIA.
 
 ----
 
 ## Prerequisites for the emulator
 
-The OFMF reference implementation requires Python 3.5 or higher, make sure to properly configure your system before attempting using this project. If not available on your system, please refer to the best practices for installing bython onto your operating system.
+The OFMF reference implementation requires Python 3.5 or higher, make sure to properly configure your system before attempting using this project. If not available on your system, please refer to the best practices for installing python onto your operating system.
 
-This project, by default uses virtualenv for separating the emulator environment from the main system python environment. Make sure virtualenv is available as part of your system python environment. Please note, using virtualenv is not a requirement for the OFMF Reference to properly function.
-
+It is recommended for this project to use virtualenv for separating the emulator environment from the main system python environment. Make sure virtualenv is available as part of your system python environment. Please note, using virtualenv is not a requirement for the OFMF Reference to properly function.
+To set up the emulator Python virtualenv and requirements, run:"
+```
+virtualenv --python=python3 venv
+venv/bin/pip install -q -r requirements.txt
+```
+ 
 ----
 
 ## Installing the OFMF Reference implementation
 
 ### <u>Basic OFMF installation process</u>
-We provide a (bash) script that automatically installs and runs the emulator on a Linux system. By default the emulator is installed in the `../OFMF` folder. However the destination folder can be changed when first isntalling the project.
-The script will take care of creating a virtual environment called `venv` inside the installation folder annd will take care of installing all the requirements of the project.
+We provide a (bash) script that automatically installs and runs the emulator on a Linux system. 
+The script will take care of installing all the requirements of the project.
 
 To start the installation process, run:
 ```
@@ -31,10 +36,10 @@ after completion this script will also execute the OFMF that will be listening o
 
 The `setup.sh` script provides parameters for configuring the installation of the OFMF:
 ```
-./setup.sh -w DEST_FOLDER -p PORT -n
+./setup.sh -p PORT -n
 ```
 
-the `-w` argument can be used for installing the OFMF in a custom destination folder. The `-p` argument allows fo remulator to be started listening on an alternative port. Finally, the `-n` argument is used only for copy new files into the destination folder withour re-installing the entire environment. An example usage for the `-n` argument is when a developer makes changes to one of the files in the project and wants to test the changes. She would modify the source code of any of the files and then run the below command only to update the code base.
+The `-p` argument allows the emulator to be started listening on an alternative port. Finally, the `-n` argument is used only for copy new files into the destination folder withour re-installing the entire environment. An example usage for the `-n` argument is when a developer makes changes to one of the files in the project and wants to test the changes. He would modify the source code of any of the files and then run the below command only to update the code base.
 
 ```
 ./setup.sh -n
@@ -43,11 +48,12 @@ the `-w` argument can be used for installing the OFMF in a custom destination fo
 After a successful installation, the OFMF can be started by running the below commands:
 
 ```
-source INST_DIR/venv/bin/activate
-python INST_DIR/emulator.py
+python3 ofmf-main.py
 ```
-
-where `INST_DIR` is the directory where the OFMF was initially installed.
+or if a virtual environement has been set up:
+```
+venv/bin/python ofmf-main.py
+```
 
 ----
 
