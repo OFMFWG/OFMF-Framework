@@ -78,12 +78,19 @@ while [ "$1" != "" ]; do
 done
 
 # Do some system sanity checks first
-if ! [ -x "$(command -v python3)" ] ; then
+if ! [ -x "$(command -v python3)" ]; then
     echo "Error: python3 is required to run the emulator and executable not" \
          "found"
     echo ""
     echo "See https://www.python.org/downloads/ for installation instructions."
     echo ""
+    exit 1
+fi
+
+VERSION=$(python3 -V 2>&1 | cut -d\  -f 2) # python 2 prints version to stderr
+VERSION=(${VERSION//./ }) # make an version parts array 
+if [[ ${VERSION[0]} -lt 3 ]] || [[ ${VERSION[0]} -eq 3 && ${VERSION[1]} -lt 5 ]] ; then
+    echo "Python version is:" ${VERSION[0]}.${VERSION[1]} "> Python 3.5+ needed!" 1>&2
     exit 1
 fi
 

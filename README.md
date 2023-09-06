@@ -11,6 +11,7 @@ The OFMF Reference implementation is maintained by the OpenFabrics Alliance, whi
 The OFMF reference implementation requires Python 3.5 or higher, make sure to properly configure your system before attempting using this project. If not available on your system, please refer to the best practices for installing python onto your operating system.
 
 It is recommended for this project to use virtualenv for separating the emulator environment from the main system python environment. Make sure virtualenv is available as part of your system python environment. Please note, using virtualenv is not a requirement for the OFMF Reference to properly function.
+
 To set up the emulator Python virtualenv and requirements, run:"
 ```
 virtualenv --python=python3 venv
@@ -36,10 +37,10 @@ after completion this script will also execute the OFMF that will be listening o
 
 The `setup.sh` script provides parameters for configuring the installation of the OFMF:
 ```
-./setup.sh -p PORT -n
+./setup.sh -p PORT -n -v
 ```
 
-The `-p` argument allows the emulator to be started listening on an alternative port. Finally, the `-n` argument is used only for copy new files into the destination folder withour re-installing the entire environment. An example usage for the `-n` argument is when a developer makes changes to one of the files in the project and wants to test the changes. He would modify the source code of any of the files and then run the below command only to update the code base.
+The `-p` argument allows the emulator to be started listening on an alternative port. Finally, the `-n` argument is used only for copy new files into the destination folder withour re-installing the entire environment. An example usage for the `-n` argument is when a developer makes changes to one of the files in the project and wants to test the changes. He would modify the source code of any of the files and then run the below command only to update the code base. The `-p` argument will create the virtual environment to separate the emulator environment from the main system environment.
 
 ```
 ./setup.sh -n
@@ -59,7 +60,7 @@ venv/bin/python ofmf-main.py
 
 ## Interacting with the OFMF
 
-Users can interact with the OFMF with any tool, command line or GUI based, that can send HTTP methods (GET, POST, DELETE, PATHC, PUT) to the below URI:
+Users can interact with the OFMF with any tool, command line or GUI based, that can send HTTP methods (GET, POST, DELETE, PATCH, PUT) to the below URI:
 
 `http://localhost:5000/redfish/v1/`
 
