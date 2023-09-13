@@ -3,9 +3,9 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 echo "Script dir: $SCRIPT_DIR"
 
-${SCRIPT_DIR}/../setup.sh -w ./emul -n
+${SCRIPT_DIR}/../setup.sh -n
 
-cd ${SCRIPT_DIR}/../emul
+cd ${SCRIPT_DIR}/..
 
 source ./venv/bin/activate
 
